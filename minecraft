@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Clone</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #87CEEB;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 48px;
+            color: #333;
+            text-shadow: 2px 2px #FFF;
+        }
+
+        .menu {
+            margin-top: 20px;
+        }
+
+        .menu button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .menu button:hover {
+            background-color: #45a049;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            text-align: center;
+            width: 100%;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">Minecraft</div>
+        <div class="menu">
+            <button>Singleplayer</button>
+            <button>Multiplayer</button>
+            <button>Options</button>
+            <button>Quit Game</button>
+        </div>
+    </div>
+    <div class="footer">Minecraft Clone by jihao0628</div>
+</body>
+</html>
