@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吉豪浏览器</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --toolbar-color: #f0f0f0;
+            --border-color: #d0d0d0;
+            --hover-color: #e0e0e0;
+            --tab-active-color: #ffffff;
+            --tab-inactive-color: #f0f0f0;
+        }
+
+        .dark-mode {
+            --bg-color: #333333;
+            --text-color: #ffffff;
+            --toolbar-color: #444444;
+            --border-color: #555555;
+            --hover-color: #555555;
+            --tab-active-color: #444444;
+            --tab-inactive-color: #333333;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        #main-window {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #bookmark-bar {
+            display: flex;
+            background-color: var(--toolbar-color);
+            padding: 2px;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .bookmark-btn {
+            font-size: 12px;
+            padding: 2px 5px;
+            margin: 0 2px;
+            border: none;
+            background: none;
+            color: var(--text-color);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .bookmark-btn:hover {
+            text-decoration: underline;
+            background-color: var(--hover-color);
+        }
+
+        #nav-toolbar {
+            display: flex;
+            align-items: center;
+            background-color: var(--toolbar-color);
+            padding: 3px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-btn {
+            font-size: 12px;
+            min-width: 24px;
+            min-height: 24px;
+            padding: 2px;
+            margin: 0 2px;
+            border-radius: 2px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .nav-btn:hover {
+            background-color: var(--hover-color);
+        }
+
+        #url-bar {
+            flex-grow: 1;
+            font-size: 12px;
+            padding: 3px 6px;
+            min-height: 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+            margin: 0 5px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        #tab-bar {
+            display: flex;
+            background-color: var(--toolbar-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            background-color: var(--tab-inactive-color);
+            border-right: 1px solid var(--border-color);
+            position: relative;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background-color: var(--tab-active-color);
+            font-weight: bold;
+        }
+
+        .tab-close {
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        #new-tab-btn {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        #content-area {
+            flex-grow: 1;
+            display: flex;
+        }
+
+        .tab-content {
+            flex-grow: 1;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* 对话框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            padding: 20px;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .modal-footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        /* 历史和书签列表 */
+        .list-item {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .list-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        /* 设置项 */
+        .settings-item {
+            margin-bottom: 15px;
+        }
+
+        /* 下载项 */
+        .download-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .download-progress {
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-window">
+        <!-- 书签栏 -->
+        <div id="bookmark-bar"></div>
+
+        <!-- 导航工具栏 -->
+        <div id="nav-toolbar">
+            <button class="nav-btn" title="后退" onclick="goBack()">↩</button>
+            <button class="nav-btn" title="前进" onclick="goForward()">↪</button>
+            <button class="nav-btn" title="刷新" onclick="reload()">↻</button>
+            <button class="nav-btn" title="主页" onclick="goHome()">🏠</button>
+            <input type="text" id="url-bar" placeholder="搜索或输入网址" onkeypress="if(event.keyCode==13) navigateToUrl()">
+            <button class="nav-btn" id="bookmark-btn" title="书签" onclick="toggleBookmark()">☆</button>
+            <button class="nav-btn" title="新标签页" onclick="newTab()">➕</button>
+            <button class="nav-btn" title="隐私模式" onclick="togglePrivateMode()">👤</button>
+            <button class="nav-btn" title="下载" onclick="showDownloads()">⏬</button>
+            <button class="nav-btn" title="历史记录" onclick="showHistory()">🕒</button>
+            <button class="nav-btn" title="设置" onclick="showSettings()">⚙️</button>
+            <button class="nav-btn" title="切换主题" onclick="toggleTheme()">🌓</button>
+        </div>
+
+        <!-- 标签栏 -->
+        <div id="tab-bar">
+            <!-- 标签页将动态添加到这里 -->
+        </div>
+
+        <!-- 内容区域 -->
+        <div id="content-area">
+            <!-- 标签内容将动态添加到这里 -->
+        </div>
+    </div>
+
+    <!-- 历史记录对话框 -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">历史记录</div>
+                <span class="close-btn" onclick="closeModal('history-modal')">×</span>
+            </div>
+            <input type="text" id="history-search" placeholder="搜索历史记录..." oninput="filterHistory()">
+            <div id="history-list"></div>
+            <div class="modal-footer">
+                <button class="btn" onclick="clearHistory()">清除历史记录</button>
+                <button class="btn" onclick="closeModal('history-modal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 下载对话框 -->
+    <div id="downloads-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">下载</div>
+                <span class="close-btn" onclick="closeModal('downloads-modal')">×</span>
+            </div>
+            <div id="downloads-list"></div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('downloads-modal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置对话框 -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">设置</div>
+                <span class="close-btn" onclick="closeModal('settings-modal')">×</span>
+            </div>
+            <div class="settings-item">
+                <button class="btn" onclick="setHomePage()">设置主页</button>
+            </div>
+            <div class="settings-item">
+                <button class="btn" onclick="setSearchEngine()">设置搜索引擎</button>
+            </div>
+            <div class="settings-item">
+                <label>
+                    <input type="checkbox" id="ad-blocker-checkbox"> 启用广告拦截
+                </label>
+            </div>
+            <div class="settings-item">
+                <button class="btn" onclick="manageBookmarks()">管理书签</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('settings-modal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 书签管理对话框 -->
+    <div id="bookmarks-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">管理书签</div>
+                <span class="close-btn" onclick="closeModal('bookmarks-modal')">×</span>
+            </div>
+            <div id="bookmarks-list"></div>
+            <div class="modal-footer">
+                <button class="btn" onclick="deleteSelectedBookmark()">删除选中</button>
+                <button class="btn" onclick="closeModal('bookmarks-modal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 浏览器状态
+        const browserState = {
+            homePage: "https://www.baidu.com",
+            defaultSearchEngine: "https://www.baidu.com/s?wd=",
+            isPrivateMode: false,
+            isDarkMode: false,
+            adBlockerEnabled: true,
+            bookmarks: [],
+            history: [],
+            downloads: [],
+            tabs: [],
+            currentTabIndex: 0,
+            searchEngines: {
+                "百度": "https://www.baidu.com/s?wd=",
+                "谷歌": "https://www.google.com/search?q=",
+                "必应": "https://www.bing.com/search?q="
+            }
+        };
+
+        // 初始化浏览器
+        function initBrowser() {
+            loadUserData();
+            updateBookmarkBar();
+            newTab(browserState.homePage, "首页");
+            document.getElementById('ad-blocker-checkbox').checked = browserState.adBlockerEnabled;
+        }
+
+        // 标签页管理
+        function newTab(url, title) {
+            const tabId = 'tab-' + Date.now();
+            const tabIndex = browserState.tabs.length;
+            
+            // 创建标签按钮
+            const tabBar = document.getElementById('tab-bar');
+            const tabBtn = document.createElement('div');
+            tabBtn.className = 'tab' + (tabIndex === 0 ? ' active' : '');
+            tabBtn.id = tabId + '-btn';
+            tabBtn.innerHTML = (title || '新标签页') + '<span class="tab-close" onclick="closeTab(event, ' + tabIndex + ')">×</span>';
+            tabBtn.onclick = () => switchTab(tabIndex);
+            tabBar.appendChild(tabBtn);
+            
+            // 创建标签内容
+            const contentArea = document.getElementById('content-area');
+            const tabContent = document.createElement('div');
+            tabContent.className = 'tab-content' + (tabIndex === 0 ? ' active' : '');
+            tabContent.id = tabId + '-content';
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = url || browserState.homePage;
+            iframe.onload = () => updateTabTitle(tabIndex, iframe.contentDocument.title);
+            tabContent.appendChild(iframe);
+            contentArea.appendChild(tabContent);
+            
+            // 添加到状态
+            browserState.tabs.push({
+                id: tabId,
+                url: url || browserState.homePage,
+                title: title || '新标签页',
+                iframe: iframe
+            });
+            
+            // 设置为当前标签页
+            switchTab(tabIndex);
+            
+            return tabIndex;
+        }
+
+        function closeTab(event, index) {
+            event.stopPropagation();
+            
+            if (browserState.tabs.length <= 1) {
+                newTab();
+            }
+            
+            // 从DOM中移除标签页
+            const tabId = browserState.tabs[index].id;
+            document.getElementById(tabId + '-btn').remove();
+            document.getElementById(tabId + '-content').remove();
+            
+            // 从状态中移除
+            browserState.tabs.splice(index, 1);
+            
+            // 如果需要更新当前标签页索引
+            if (browserState.currentTabIndex >= index) {
+                browserState.currentTabIndex = Math.max(0, browserState.currentTabIndex - 1);
+            }
+            
+            // 如果关闭的是当前标签页，切换到另一个标签页
+            if (index === browserState.currentTabIndex && browserState.tabs.length > 0) {
+                switchTab(browserState.currentTabIndex);
+            }
+        }
+
+        function switchTab(index) {
+            // 更新UI
+            document.querySelectorAll('.tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            
+            document.querySelectorAll('.tab-content').forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+            
+            // 更新状态
+            browserState.currentTabIndex = index;
+            const currentTab = browserState.tabs[index];
+            
+            // 更新地址栏
+            document.getElementById('url-bar').value = currentTab.url;
+            
+            // 更新书签按钮
+            updateBookmarkButton();
+        }
+
+        function updateTabTitle(index, title) {
+            const tab = browserState.tabs[index];
+            tab.title = title;
+            
+            const tabBtn = document.getElementById(tab.id + '-btn');
+            if (tabBtn) {
+                const shortTitle = title.length > 15 ? title.substring(0, 15) + '...' : title;
+                tabBtn.innerHTML = shortTitle + '<span class="tab-close" onclick="closeTab(event, ' + index + ')">×</span>';
+            }
+        }
+
+        // 导航功能
+        function navigateToUrl() {
+            const query = document.getElementById('url-bar').value.trim();
+            const currentTab = browserState.tabs[browserState.currentTabIndex];
+            
+            let url;
+            if (query.includes(' ') || !query.includes('.')) {
+                url = browserState.defaultSearchEngine + encodeURIComponent(query);
+            } else {
+                url = query.startsWith('http') ? query : 'http://' + query;
+            }
+            
+            currentTab.url = url;
+            currentTab.iframe.src = url;
+            
+            // 如果不是隐私模式，添加到历史记录
+            if (!browserState.isPrivateMode) {
+                browserState.history.push(url);
+                saveUserData();
+            }
+        }
+
+        function goBack() {
+            const currentTab = browserState.tabs[browserState.currentTabIndex];
+            try {
+                currentTab.iframe.contentWindow.history.back();
+            } catch (e) {
+                console.log("无法后退");
+            }
+        }
+
+        function goForward() {
+            const currentTab = browserState.tabs[browserState.currentTabIndex];
+            try {
+                currentTab.iframe.contentWindow.history.forward();
+            } catch (e) {
+                console.log("无法前进");
+            }
+        }
+
+        function reload() {
+            const currentTab = browserState.tabs[browserState.currentTabIndex];
+            currentTab.iframe.src = currentTab.url;
+        }
+
+        function goHome() {
+            const currentTab = browserState.tabs[browserState.currentTabIndex];
+            currentTab.url = browserState.homePage;
+            currentTab.iframe.src = browserState.homePage;
+            
+            // 如果不是隐私模式，添加到历史记录
+            if (!browserState.isPrivateMode) {
+                browserState.history.push(browserState.homePage);
+                saveUserData();
+            }
+        }
+
+        // 书签功能
+        function toggleBookmark() {
+            const currentTab = browserState.tabs[browserState.currentTabIndex];
+            const currentUrl = currentTab.url;
+            const currentTitle = currentTab.title;
+            
+            // 检查是否已收藏
+            const bookmarkIndex = browserState.bookmarks.findIndex(b => b.url === currentUrl);
+            
+            if (bookmarkIndex !== -1) {
+                // 已收藏，移除
+                browserState.bookmarks.splice(bookmarkIndex, 1);
+                document.getElementById('bookmark-btn').textContent = '☆';
+                alert('书签已移除: ' + currentTitle);
+            } else {
+                // 未收藏，添加
+                const title = prompt('为书签命名:', currentTitle);
+                if (title) {
+                    browserState.bookmarks.push({ title: title, url: currentUrl });
+                    document.getElementById('bookmark-btn').textContent = '★';
+                    alert('书签已添加: ' + title);
+                }
+            }
+            
+            updateBookmarkBar();
+            saveUserData();
+        }
+
+        function updateBookmarkButton() {
+            const currentTab = browserState.tabs[browserState.currentTabIndex];
+            if (!currentTab) return;
+            
+            const currentUrl = currentTab.url;
+            const isBookmarked = browserState.bookmarks.some(b => b.url === currentUrl);
+            document.getElementById('bookmark-btn').textContent = isBookmarked ? '★' : '☆';
+        }
+
+        function updateBookmarkBar() {
+            const bookmarkBar = document.getElementById('bookmark-bar');
+            bookmarkBar.innerHTML = '';
+            
+            // 只显示前15个书签
+            browserState.bookmarks.slice(0, 15).forEach(bookmark => {
+                const btn = document.createElement('button');
+                btn.className = 'bookmark-btn';
+                btn.textContent = bookmark.title.length > 15 ? bookmark.title.substring(0, 15) + '...' : bookmark.title;
+                btn.title = bookmark.title + '\n' + bookmark.url;
+                btn.onclick = () => {
+                    const currentTab = browserState.tabs[browserState.currentTabIndex];
+                    currentTab.url = bookmark.url;
+                    currentTab.iframe.src = bookmark.url;
+                };
+                bookmarkBar.appendChild(btn);
+            });
+        }
+
+        // 历史记录功能
+        function showHistory() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            // 显示最新的在最上面
+            [...browserState.history].reverse().forEach(url => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.textContent = url;
+                item.onclick = () => {
+                    const currentTab = browserState.tabs[browserState.currentTabIndex];
+                    currentTab.url = url;
+                    currentTab.iframe.src = url;
+                    closeModal('history-modal');
+                };
+                historyList.appendChild(item);
+            });
+            
+            document.getElementById('history-modal').style.display = 'flex';
+        }
+
+        function filterHistory() {
+            const searchText = document.getElementById('history-search').value.toLowerCase();
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            [...browserState.history].reverse().forEach(url => {
+                if (url.toLowerCase().includes(searchText)) {
+                    const item = document.createElement('div');
+                    item.className = 'list-item';
+                    item.textContent = url;
+                    item.onclick = () => {
+                        const currentTab = browserState.tabs[browserState.currentTabIndex];
+                        currentTab.url = url;
+                        currentTab.iframe.src = url;
+                        closeModal('history-modal');
+                    };
+                    historyList.appendChild(item);
+                }
+            });
+        }
+
+        function clearHistory() {
+            if (confirm('确定要清除所有历史记录吗？')) {
+                browserState.history = [];
+                saveUserData();
+                document.getElementById('history-list').innerHTML = '';
+                alert('历史记录已清除');
+            }
+        }
+
+        // 下载功能
+        function showDownloads() {
+            const downloadsList = document.getElementById('downloads-list');
+            downloadsList.innerHTML = '';
+            
+            if (browserState.downloads.length === 0) {
+                downloadsList.innerHTML = '<p>没有下载项</p>';
+            } else {
+                browserState.downloads.forEach(download => {
+                    const item = document.createElement('div');
+                    item.className = 'download-item';
+                    
+                    const name = document.createElement('div');
+                    name.textContent = download.fileName;
+                    name.style.fontWeight = 'bold';
+                    name.style.flex = '3';
+                    item.appendChild(name);
+                    
+                    const progress = document.createElement('div');
+                    progress.className = 'download-progress';
+                    const progressBar = document.createElement('progress');
+                    progressBar.value = download.progress;
+                    progressBar.max = 100;
+                    progress.appendChild(progressBar);
+                    item.appendChild(progress);
+                    
+                    const status = document.createElement('div');
+                    status.textContent = download.status + ' | ' + download.size;
+                    status.style.flex = '2';
+                    item.appendChild(status);
+                    
+                    downloadsList.appendChild(item);
+                });
+            }
+            
+            document.getElementById('downloads-modal').style.display = 'flex';
+        }
+
+        // 隐私模式
+        function togglePrivateMode() {
+            browserState.isPrivateMode = !browserState.isPrivateMode;
+            alert('隐私模式已' + (browserState.isPrivateMode ? '开启' : '关闭'));
+        }
+
+        // 主题切换
+        function toggleTheme() {
+            browserState.isDarkMode = !browserState.isDarkMode;
+            document.body.classList.toggle('dark-mode', browserState.isDarkMode);
+            alert('主题已切换为' + (browserState.isDarkMode ? '暗色' : '亮色') + '模式');
+            saveUserData();
+        }
+
+        // 设置功能
+        function showSettings() {
+            document.getElementById('settings-modal').style.display = 'flex';
+        }
+
+        function setHomePage() {
+            const newHomePage = prompt('请输入主页URL:', browserState.homePage);
+            if (newHomePage) {
+                browserState.homePage = newHomePage;
+                alert('主页已设置为: ' + newHomePage);
+                saveUserData();
+            }
+        }
+
+        function setSearchEngine() {
+            const engines = Object.keys(browserState.searchEngines);
+            const selectedEngine = prompt('请选择搜索引擎:\n' + engines.join('\n'), engines[0]);
+            if (selectedEngine && browserState.searchEngines[selectedEngine]) {
+                browserState.defaultSearchEngine = browserState.searchEngines[selectedEngine];
+                alert('搜索引擎已设置为: ' + selectedEngine);
+                saveUserData();
+            }
+        }
+
+        function toggleAdBlocker() {
+            browserState.adBlockerEnabled = document.getElementById('ad-blocker-checkbox').checked;
+            alert('广告拦截器已' + (browserState.adBlockerEnabled ? '启用' : '停用'));
+            saveUserData();
+        }
+
+        // 书签管理
+        function manageBookmarks() {
+            const bookmarksList = document.getElementById('bookmarks-list');
+            bookmarksList.innerHTML = '';
+            
+            browserState.bookmarks.forEach((bookmark, index) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.textContent = bookmark.title + ' - ' + bookmark.url;
+                item.onclick = function() {
+                    this.classList.toggle('selected');
+                };
+                bookmarksList.appendChild(item);
+            });
+            
+            document.getElementById('bookmarks-modal').style.display = 'flex';
+        }
+
+        function deleteSelectedBookmark() {
+            const items = document.querySelectorAll('#bookmarks-list .list-item.selected');
+            if (items.length === 0) {
+                alert('请先选择要删除的书签');
+                return;
+            }
+            
+            if (confirm(`确定要删除选中的 ${items.length} 个书签吗？`)) {
+                // 由于DOM操作，我们需要反向删除
+                const indexesToDelete = [];
+                items.forEach(item => {
+                    const index = Array.from(item.parentNode.children).indexOf(item);
+                    indexesToDelete.unshift(index); // 反向添加索引
+                });
+                
+                // 从数组中删除
+                indexesToDelete.forEach(index => {
+                    browserState.bookmarks.splice(index, 1);
+                });
+                
+                // 更新UI
+                manageBookmarks();
+                updateBookmarkBar();
+                saveUserData();
+                alert('书签已删除');
+            }
+        }
+
+        // 对话框功能
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 数据存储
+        function loadUserData() {
+            try {
+                const data = JSON.parse(localStorage.getItem('jihaoBrowserData')) || {};
+                browserState.bookmarks = data.bookmarks || [];
+                browserState.history = data.history || [];
+                browserState.homePage = data.homePage || "https://www.baidu.com";
+                browserState.defaultSearchEngine = data.defaultSearchEngine || "https://www.baidu.com/s?wd=";
+                browserState.isDarkMode = data.isDarkMode || false;
+                browserState.adBlockerEnabled = data.adBlockerEnabled !== false;
+                
+                if (browserState.isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                }
+            } catch (e) {
+                console.error('加载用户数据失败:', e);
+            }
+        }
+
+        function saveUserData() {
+            if (browserState.isPrivateMode) return;
+            
+            const data = {
+                bookmarks: browserState.bookmarks,
+                history: browserState.history,
+                homePage: browserState.homePage,
+                defaultSearchEngine: browserState.defaultSearchEngine,
+                isDarkMode: browserState.isDarkMode,
+                adBlockerEnabled: browserState.adBlockerEnabled
+            };
+            
+            localStorage.setItem('jihaoBrowserData', JSON.stringify(data));
+        }
+
+        // 初始化浏览器
+        window.onload = initBrowser;
+    </script>
+</body>
+</html>
