@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube视频信息获取</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #result { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>YouTube视频信息获取</h1>
+    <p>注意：这只是一个前端界面，实际下载需要第三方服务支持</p>
+    
+    <input type="text" id="youtubeUrl" placeholder="输入YouTube视频URL" style="width: 70%; padding: 8px;">
+    <button onclick="getVideoInfo()">获取信息</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        function getVideoInfo() {
+            const url = document.getElementById('youtubeUrl').value;
+            const videoId = extractVideoId(url);
+            
+            if (!videoId) {
+                document.getElementById('result').innerHTML = '<p>请输入有效的YouTube视频URL</p>';
+                return;
+            }
+            
+            document.getElementById('result').innerHTML = `
+                <h3>视频信息</h3>
+                <p>视频ID: ${videoId}</p>
+                <img src="https://img.youtube.com/vi/${videoId}/0.jpg" alt="缩略图" width="200">
+                <p>要下载此视频，您需要使用第三方服务。以下是一些选项：</p>
+                <ul>
+                    <li><a href="https://yt1s.com/en20" target="_blank">yt1s.com</a></li>
+                    <li><a href="https://y2mate.com/" target="_blank">y2mate.com</a></li>
+                </ul>
+                <p><strong>注意：</strong>下载YouTube视频可能违反其服务条款。请确保您有下载内容的权利。</p>
+            `;
+        }
+        
+        function extractVideoId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+    </script>
+</body>
+</html>
