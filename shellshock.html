@@ -1,3 +1,19 @@
-<iframe src="https://shellshock.io/" frameborder="1" width="400" height="300">
-  錯誤
-</iframe>
+<style type="text/css">
+	/* 
+		推荐使用css设置iframe的样式，因为height设置成100%会失效，
+		而这时就要用到vh单位，但是iframe标签不支持，css可以。 
+	*/
+	.css{
+		width: 100%;
+		height: 100vh;	/* 视口的100%高度 */
+		border: 0;		/* 把他自带的边框去掉，不然会有违和感 */
+	}
+</style>
+<iframe src="https://shellshock.io/" class="css" ></iframe>
+<!-- 
+	不推荐的属性，建议用css设置：
+	width：像素值或百分比，框架作为一个普通元素的宽度，建议使用css设置。 
+	height：像素值或百分比，框架作为一个普通元素的高度，建议使用css设置。 
+	frameborder：0（无边框）或1（带边框），框架是否自带，建议使用css设置。 
+ -->
+
