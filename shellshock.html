@@ -1,53 +1,523 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-    <title>ShellShock 遊戲入口</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遊戲載入中心</title>
     <style>
-        #gameContainer {
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            color: #333;
         }
-        #gameButton {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background: #ff5722;
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .method {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 5px solid #3498db;
+            transition: all 0.3s ease;
+        }
+        .method:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+        .method h3 {
+            margin-top: 0;
+            color: #3498db;
+            font-size: 1.3em;
+        }
+        button {
+            background: #3498db;
             color: white;
             border: none;
-            border-radius: 5px;
+            padding: 10px 18px;
+            border-radius: 6px;
             cursor: pointer;
-            z-index: 100;
+            margin-right: 12px;
+            margin-bottom: 12px;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        button.danger {
+            background: #e74c3c;
+        }
+        button.danger:hover {
+            background: #c0392b;
+        }
+        button.success {
+            background: #2ecc71;
+        }
+        button.success:hover {
+            background: #27ae60;
+        }
+        button.warning {
+            background: #f39c12;
+        }
+        button.warning:hover {
+            background: #d35400;
+        }
+        .hidden {
+            display: none;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: -1px;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 20px;
+            transition: 0.3s;
+            color: #555;
+            margin: 0;
+            border-radius: 0;
+            font-weight: bold;
+        }
+        .tab button:hover {
+            background-color: #eee;
+            color: #2c3e50;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 25px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            animation: fadeEffect 0.5s;
+            background: white;
+        }
+        @keyframes fadeEffect {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+        .settings-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            display: none;
+        }
+        .status.success {
+            background: #d5f5e3;
+            color: #27ae60;
+            display: block;
+        }
+        .status.error {
+            background: #fadbd8;
+            color: #e74c3c;
+            display: block;
+        }
+        .advanced-options {
+            margin-top: 30px;
+            border-top: 1px dashed #ddd;
+            padding-top: 20px;
+        }
+        .toggle-advanced {
+            color: #3498db;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        .method-description {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .method-risks {
+            font-size: 0.85em;
+            color: #e74c3c;
+            margin-top: 10px;
+            padding: 8px;
+            background: #fadbd8;
+            border-radius: 4px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer"></div>
-    <button id="gameButton" onclick="loadGame()">啟動遊戲</button>
+    <div class="container">
+        <h1>遊戲載入中心</h1>
+        
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'Methods')">載入方法</button>
+            <button class="tablinks" onclick="openTab(event, 'Settings')">設定</button>
+            <button class="tablinks" onclick="openTab(event, 'Advanced')">進階</button>
+        </div>
+        
+        <div id="Methods" class="tabcontent" style="display: block;">
+            <div class="method">
+                <h3>基本方法</h3>
+                <div class="method-description">最簡單直接的載入方式，適合大多數情況。</div>
+                <button onclick="openNewTab()" class="success">新分頁開啟</button>
+                <button onclick="openPopup()">彈出視窗</button>
+                <button onclick="replacePage()" class="warning">頁面替換</button>
+            </div>
+            
+            <div class="method">
+                <h3>隱藏載入技術</h3>
+                <div class="method-description">嘗試繞過簡單的網站封鎖機制。</div>
+                <button onclick="loadHiddenIframe()">偽裝iframe</button>
+                <button onclick="loadObjectTag()">Object標籤</button>
+                <button onclick="loadEmbedTag()">Embed標籤</button>
+                <div id="hiddenContainer" class="hidden"></div>
+            </div>
+            
+            <div class="method">
+                <h3>進階破解技術 <span class="toggle-advanced" onclick="toggleRisks(this)">[顯示風險]</span></h3>
+                <div class="method-description">高級技術，可能觸發安全警告或失效。</div>
+                <button onclick="loadProxyMethod()" class="warning">代理伺服器</button>
+                <button onclick="loadUserAgentSpoof()" class="warning">UA偽裝</button>
+                <button onclick="loadCorsBypass()" class="danger">CORS繞過</button>
+                <div class="method-risks">
+                    <strong>⚠ 風險提示：</strong>這些方法可能違反網站使用條款或您所在網路的管理規定，請謹慎使用。
+                </div>
+            </div>
+            
+            <div class="method">
+                <h3>替代方案</h3>
+                <div class="method-description">其他可能的解決方案。</div>
+                <button onclick="loadBookmarklet()">書籤小工具</button>
+                <button onclick="showVPNGuide()">VPN指南</button>
+                <button onclick="showCacheMethod()">快取載入</button>
+            </div>
+        </div>
+        
+        <div id="Settings" class="tabcontent">
+            <h3>基本設定</h3>
+            <div class="settings-group">
+                <label for="gameUrl">遊戲網址:</label>
+                <input type="text" id="gameUrl" value="https://shellshock.io/">
+            </div>
+            
+            <div class="settings-group">
+                <label for="windowSize">視窗大小:</label>
+                <select id="windowSize">
+                    <option value="800,600">800x600 (預設)</option>
+                    <option value="1024,768">1024x768</option>
+                    <option value="1280,720">1280x720</option>
+                    <option value="fullscreen">全螢幕</option>
+                    <option value="custom">自訂...</option>
+                </select>
+            </div>
+            
+            <div id="customSizeGroup" class="settings-group" style="display:none;">
+                <label for="customWidth">自訂寬度:</label>
+                <input type="text" id="customWidth" placeholder="寬度(px)">
+                
+                <label for="customHeight">自訂高度:</label>
+                <input type="text" id="customHeight" placeholder="高度(px)">
+            </div>
+            
+            <button onclick="saveSettings()" class="success">儲存設定</button>
+            <div id="saveStatus" class="status"></div>
+        </div>
+        
+        <div id="Advanced" class="tabcontent">
+            <h3>進階設定</h3>
+            
+            <div class="settings-group">
+                <label for="userAgent">自訂User-Agent:</label>
+                <input type="text" id="userAgent" placeholder="留空使用瀏覽器預設">
+                <small>範例: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36...</small>
+            </div>
+            
+            <div class="settings-group">
+                <label for="proxyServer">代理伺服器:</label>
+                <input type="text" id="proxyServer" placeholder="例如: https://proxy.example.com">
+            </div>
+            
+            <div class="advanced-options">
+                <h4>實驗性功能</h4>
+                <div class="settings-group">
+                    <label>
+                        <input type="checkbox" id="enableWebRTC"> 啟用WebRTC繞過
+                    </label>
+                    <small>可能幫助繞過某些網路限制，但會增加隱私風險</small>
+                </div>
+                
+                <div class="settings-group">
+                    <label>
+                        <input type="checkbox" id="enableServiceWorker"> 啟用Service Worker快取
+                    </label>
+                    <small>嘗試緩存遊戲資源以便離線使用</small>
+                </div>
+            </div>
+            
+            <button onclick="saveAdvancedSettings()" class="warning">儲存進階設定</button>
+            <div id="advancedSaveStatus" class="status"></div>
+        </div>
+    </div>
 
     <script>
-        function loadGame() {
-            // 方法1a: 使用 window.open (最簡單)
-            window.open('https://shellshock.io/', '_blank');
+        // 儲存設定
+        let settings = {
+            gameUrl: 'https://shellshock.io/',
+            windowSize: '800,600',
+            userAgent: '',
+            proxyServer: '',
+            enableWebRTC: false,
+            enableServiceWorker: false
+        };
+        
+        // 初始化頁面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 載入儲存的設定
+            const savedSettings = localStorage.getItem('gameLoaderSettings');
+            if(savedSettings) {
+                settings = JSON.parse(savedSettings);
+                applySettings();
+            }
             
-            // 方法1b: 使用 location.replace (替換當前頁面)
-            // window.location.replace('https://shellshock.io/');
-            
-            // 方法1c: 動態創建iframe (偽裝成其他元素)
-            /*
-            const container = document.getElementById('gameContainer');
-            container.innerHTML = `
-                <div style="width:100%;height:100%;position:relative">
-                    <object data="https://shellshock.io/" 
+            // 視窗大小選擇事件
+            document.getElementById('windowSize').addEventListener('change', function() {
+                if(this.value === 'custom') {
+                    document.getElementById('customSizeGroup').style.display = 'block';
+                } else {
+                    document.getElementById('customSizeGroup').style.display = 'none';
+                }
+            });
+        });
+        
+        // 應用設定到表單
+        function applySettings() {
+            document.getElementById('gameUrl').value = settings.gameUrl;
+            document.getElementById('windowSize').value = settings.windowSize;
+            document.getElementById('userAgent').value = settings.userAgent;
+            document.getElementById('proxyServer').value = settings.proxyServer;
+            document.getElementById('enableWebRTC').checked = settings.enableWebRTC;
+            document.getElementById('enableServiceWorker').checked = settings.enableServiceWorker;
+        }
+        
+        // 獲取遊戲URL
+        function getGameUrl() {
+            return document.getElementById('gameUrl').value.trim() || 'https://shellshock.io/';
+        }
+        
+        // 獲取視窗大小設定
+        function getWindowSize() {
+            const size = document.getElementById('windowSize').value;
+            if(size === 'fullscreen') {
+                return `width=${screen.width},height=${screen.height}`;
+            } else if(size === 'custom') {
+                const width = document.getElementById('customWidth').value || '800';
+                const height = document.getElementById('customHeight').value || '600';
+                return `width=${width},height=${height}`;
+            }
+            return `width=${size.split(',')[0]},height=${size.split(',')[1]}`;
+        }
+        
+        // 基本方法
+        function openNewTab() {
+            window.open(getGameUrl(), '_blank');
+        }
+        
+        function openPopup() {
+            const features = `${getWindowSize()},scrollbars=yes,resizable=yes`;
+            window.open(getGameUrl(), 'gameWindow', features);
+        }
+        
+        function replacePage() {
+            document.body.innerHTML = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;">
+                    <button onclick="window.location.reload()" 
+                            style="position:absolute;top:10px;right:10px;z-index:10000;background:red;color:white;">
+                        返回
+                    </button>
+                    <iframe src="${getGameUrl()}" 
                             style="width:100%;height:100%;border:none">
+                    </iframe>
+                </div>`;
+        }
+        
+        // 隱藏載入技術
+        function loadHiddenIframe() {
+            const container = document.getElementById('hiddenContainer');
+            container.innerHTML = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:white;">
+                    <button onclick="document.getElementById('hiddenContainer').classList.add('hidden')" 
+                            style="position:absolute;top:10px;right:10px;z-index:10000;background:red;color:white;">
+                        關閉
+                    </button>
+                    <iframe src="${getGameUrl()}" 
+                            style="width:100%;height:100%;border:none">
+                    </iframe>
+                </div>`;
+            container.classList.remove('hidden');
+        }
+        
+        function loadObjectTag() {
+            const container = document.getElementById('hiddenContainer');
+            container.innerHTML = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:white;">
+                    <button onclick="document.getElementById('hiddenContainer').classList.add('hidden')" 
+                            style="position:absolute;top:10px;right:10px;z-index:10000;background:red;color:white;">
+                        關閉
+                    </button>
+                    <object data="${getGameUrl()}" 
+                            style="width:100%;height:100%;border:none">
+                        <embed src="${getGameUrl()}" style="width:100%;height:100%;">
                     </object>
                 </div>`;
-            document.getElementById('gameButton').style.display = 'none';
-            */
+            container.classList.remove('hidden');
         }
-    </script>
-</body>
-</html>
+        
+        function loadEmbedTag() {
+            const container = document.getElementById('hiddenContainer');
+            container.innerHTML = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:white;">
+                    <button onclick="document.getElementById('hiddenContainer').classList.add('hidden')" 
+                            style="position:absolute;top:10px;right:10px;z-index:10000;background:red;color:white;">
+                        關閉
+                    </button>
+                    <embed src="${getGameUrl()}" 
+                            style="width:100%;height:100%;border:none">
+                </div>`;
+            container.classList.remove('hidden');
+        }
+        
+        // 進階破解技術
+        function loadProxyMethod() {
+            alert('此功能需要設置代理伺服器，請在「進階」選項卡中配置。');
+        }
+        
+        function loadUserAgentSpoof() {
+            alert('User-Agent偽裝功能正在開發中，請使用瀏覽器擴展來實現此功能。');
+        }
+        
+        function loadCorsBypass() {
+            alert('CORS繞過需要後端代理伺服器支持，普通網頁無法直接實現。');
+        }
+        
+        // 替代方案
+        function loadBookmarklet() {
+            const bookmarkletCode = `javascript:(function(){window.open('${getGameUrl()}','_blank','${getWindowSize()}');})();`;
+            
+            const container = document.getElementById('hiddenContainer');
+            container.innerHTML = `
+                <div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,0.8);display:flex;justify-content:center;align-items:center;">
+                    <div style="background:white;padding:30px;border-radius:10px;max-width:600px;">
+                        <h3 style="margin-top:0;">書籤小工具使用說明</h3>
+                        <p>1. 在瀏覽器中新建書籤</p>
+                        <p>2. 將以下代碼複製到書籤的URL欄位:</p>
+                        <textarea style="width:100%;height:60px;font-family:monospace;margin:10px 0;" readonly>${bookmarkletCode}</textarea>
+                        <p>3. 點擊書籤即可在任何頁面快速開啟遊戲</p>
+                        <button onclick="document.getElementById('hiddenContainer').classList.add('hidden')" 
+                                style="padding:10px 20px;background:#3498db;color:white;border:none;border-radius:5px;cursor:pointer;">
+                            關閉
+                        </button>
+                    </div>
+                </div>`;
+            container.classList.remove('hidden');
+        }
+        
+        function showVPNGuide() {
+            alert('VPN使用指南：\n\n1. 選擇可靠的VPN服務提供商\n2. 下載並安裝VPN應用程式\n3. 連接到其他地區的伺服器\n4. 刷新頁面或重新開啟遊戲網站');
+        }
+        
+        function showCacheMethod() {
+            alert('快取載入方法：\n\n1. 在有網路時訪問遊戲頁面\n2. 等待遊戲完全載入\n3. 斷開網路連接\n4. 刷新頁面 - 部分遊戲可能仍可運行');
+        }
+        
+        // 設定儲存
+        function saveSettings() {
+            settings.gameUrl = document.getElementById('gameUrl').value.trim();
+            settings.windowSize = document.getElementById('windowSize').value;
+            
+            localStorage.setItem('gameLoaderSettings', JSON.stringify(settings));
+            
+            const status = document.getElementById('saveStatus');
+            status.textContent = '設定已成功儲存！';
+            status.className = 'status success';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+        
+        function saveAdvancedSettings() {
+            settings.userAgent = document.getElementById('userAgent').value.trim();
+            settings.proxyServer = document.getElementById('proxyServer').value.trim();
+            settings.enableWebRTC = document.getElementById('enableWebRTC').checked;
+            settings.enableServiceWorker = document.getElementById('enableServiceWorker').checked;
+            
+            localStorage.setItem('gameLoaderSettings', JSON.stringify(settings));
+            
+            const status = document.getElementById('advancedSaveStatus');
+            status.textContent = '進階設定已儲存！';
+            status.className = 'status success';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 標籤頁切換
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        // 顯示/隱藏風險提示
+        function toggleRisks(element) {
+            const risks = element.parentNode.nextElementSibling.nextElementSibling;
+            if(risks.style.display === 'block') {
+                risks.style.display = 'none';
+                element.textContent = '[顯示風險]';
+        
