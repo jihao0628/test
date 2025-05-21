@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ShellShock 遊戲入口</title>
+    <style>
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        #gameButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #ff5722;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer"></div>
+    <button id="gameButton" onclick="loadGame()">啟動遊戲</button>
+
+    <script>
+        function loadGame() {
+            // 方法1a: 使用 window.open (最簡單)
+            window.open('https://shellshock.io/', '_blank');
+            
+            // 方法1b: 使用 location.replace (替換當前頁面)
+            // window.location.replace('https://shellshock.io/');
+            
+            // 方法1c: 動態創建iframe (偽裝成其他元素)
+            /*
+            const container = document.getElementById('gameContainer');
+            container.innerHTML = `
+                <div style="width:100%;height:100%;position:relative">
+                    <object data="https://shellshock.io/" 
+                            style="width:100%;height:100%;border:none">
+                    </object>
+                </div>`;
+            document.getElementById('gameButton').style.display = 'none';
+            */
+        }
+    </script>
+</body>
+</html>
